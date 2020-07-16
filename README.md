@@ -1,2 +1,2 @@
 # dotfiles
-Assortment of configuration files, for my own amusement
+Assortment of configuration files, for my own amusement :-)
