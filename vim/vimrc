@@ -1,0 +1,206 @@
+if &compatible | set nocompatible | endif " Avoid side effects if `nocp` already set
+
+""" BASIC OPTIONS
+
+filetype plugin indent on		" Filetype detection
+syntax enable					" Syntax highlighting
+set mouse=a						" Enable the mouse on all modes
+set hidden						" Hide buffer instead of closing when opening new file
+set autowrite					" Automatically save before commands like :next and :make
+set history=200					" Number of commands remembered	
+set backspace=indent,eol,start  " Make backspace work like most other programs
+set confirm                     " 
+set encoding=utf-8
+language en_US.utf8
+
+""" GUI
+
+if has('gui_running')
+	set guioptions=acgi
+	set background=dark
+	colorscheme abnog-blue
+	"set lines=46 columns=180
+	set guicursor=a:blinkon0    " no blinking cursor
+	set mousehide               " hide mouse cursor when typing
+	if has('win32') || has('win64')
+		":put =&guifont
+		"set guifont=Consolas:h11
+		set guifont=Ubuntu_Mono:h12:cANSI:qDRAFT
+		set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1
+	else
+		set guifont=Ubuntu\ Mono\ 14
+	endif
+else
+	if &term == "linux"
+	else
+		set background=dark
+		colorscheme Tomorrow-Night
+	endif
+endif
+
+""" UI
+
+set number						" Show line numbers
+set cursorline					" Highlight cursor line
+set lazyredraw                  " Redraw only when we need to
+set wildmenu					" Enhanced command-line completion
+set wildmode=list:full
+set wildcharm=<TAB>
+set wildignore+=.*
+set showmatch					" Show matching brackets.
+set showcmd						" Show (partial) command in status line.
+set nowrap
+set listchars=tab:»_,space:·,nbsp:␣,trail:•,eol:$,precedes:«,extends:»
+set fillchars+=vert:│
+highlight VertSplit guibg=NONE ctermbg=NONE
+set ttymouse=xterm2             " To allow dragging statusline with the mouse inside tmux
+autocmd VimResized * :wincmd =
+set switchbuf=useopen,split     " Existing open buffers would be used in preference and do a split if the file isn't already visible. 
+
+" move vertically by visual line
+nnoremap j gj
+nnoremap k gk
+
+" Allow color schemes to do bright colors without forcing bold.
+"if &t_Co == 8 && $TERM !~# '^linux\|^Eterm'
+	"set t_Co=16
+"endif
+
+""" TABS AND INDENTATION
+
+set tabstop=4					" Number of spaces that a <Tab> counts for
+set shiftwidth=4				" When indenting with '>', use 4 spaces width
+set softtabstop=0				" Affects what happens when you press the <TAB> or <BS> keys
+set noexpandtab
+set smarttab
+
+set shiftround					" Indent always on multiples of 'shiftwidth'
+set autoindent
+set smartindent
+set copyindent
+set nopreserveindent
+
+""" HARD MODE :-)
+
+for key in ['<Up>', '<Down>', '<Left>', '<Right>', '<Home>', '<End>', '<PageUp>', '<PageDown>']
+	exec 'noremap' key '<Nop>'
+	exec 'inoremap' key '<Nop>'
+	exec 'cnoremap' key '<Nop>'
+endfor
+
+""" SEARCHING
+
+set incsearch					" Search as characters are entered
+set hlsearch					" Highlight matches
+set ignorecase					" Ignore case on searches
+set smartcase					" Search case sensitive when at least on uppercase character is used
+
+" Clear search highlighting when press <CR> in normal mode
+nnoremap <CR> :noh<CR><CR>
+" clear search highlighting when press <ESC> in normal mode
+"nnoremap <silent> <ESC> :noh<CR><ESC>
+
+""" SWAP AND BACKUP FILES
+
+set backup
+set writebackup
+set undofile
+
+if has("win32") || has("win64")
+	set directory=~/vimfiles/tmp//      " Swap files
+	set backupdir=~/vimfiles/backup//   " backups
+	set undodir=~/vimfiles/undo//       " Undo files
+	set viminfo+=n~/vimfiles/viminfo    " Viminfo file
+else
+	set directory=~/.vim/tmp//          " Swap files
+	set backupdir=~/.vim/backup//       " backups
+	set undodir=~/.vim/undo//           " Undo files
+	set viminfo+=n~/.vim/viminfo        " Viminfo file
+endif
+" The trailing slashes are for vim to create each file with their full path
+" converting slashes to percent symbols
+
+" Make those folders automatically if they don't already exist.
+if !isdirectory(expand(&directory))
+	call mkdir(expand(&directory), "p")
+endif
+if !isdirectory(expand(&undodir))
+	call mkdir(expand(&undodir), "p")
+endif
+if !isdirectory(expand(&backupdir))
+	call mkdir(expand(&backupdir), "p")
+endif
+
+"""" CUSTOM KEY MAPPINGS
+
+let mapleader = "ç"
+
+" Assign F2 to toggle paste mode
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+"set showmode
+
+" Assign F3 to toggle view invisible chars
+nnoremap <F3> :set list! list?<CR>
+inoremap <F3> <ESC>:set list! list?<CR>a
+
+" Navigate buffers, windows and tabs
+nnoremap <F4> :bp<CR>
+nnoremap <F5> :bn<CR>
+nnoremap <S-F4> <C-W>W
+nnoremap <S-F5> <C-W>w
+nnoremap <C-F4> gT
+nnoremap <C-F5> gt
+
+""" ANNOYANCES
+
+" To avoid entering ex mode
+nnoremap Q <nop>
+
+" To avoid hitting U instead of u
+nnoremap U <nop>
+
+""" CUSTOM HIGHLIGHTS (for TODOs and NOTEs)
+" TODO
+" NOTE
+
+function! s:MyCustomSyntax()
+	"syntax keyword MyNote containedin=.*Comment.* contained NOTE
+	highlight Todo term=bold,underline ctermfg=Red ctermbg=52 gui=bold,underline guifg=Red guibg=NONE
+	highlight MyNote term=bold,underline ctermfg=Green ctermbg=22 gui=italic,bold,underline guifg=WebGreen guibg=NONE
+endfunction
+
+call s:MyCustomSyntax()
+
+augroup MyCustomSyntax
+	autocmd Syntax * syntax keyword MyNote containedin=.*Comment.* contained NOTE
+	autocmd Syntax * syntax match MyParens /[(){}]-+*=/
+	autocmd Syntax,ColorScheme * call s:MyCustomSyntax()
+augroup END
+
+""" PLUGIN SETTINGS
+
+let g:scratch_on = 1
+
+""" MISC OPTIONS
+
+set cinoptions+=:0             " Indent case labels by zero characters
+
+""" TEST
+
+nnoremap <silent> gb :set opfunc=TestFunc<cr>g@
+vnoremap <silent> gb :<c-u>call TestFunc(visualmode())<cr>
+
+function! s:TestFunc( type )
+	echo "type:" a:type
+	if a:type == 'line' || a:type ==# 'V'
+		echo "call append(" el ", '#')"
+		echo "call append(" sl-1 ", '#')"
+	elseif a:type == 'block' || a:type == "\<c-v>"
+		echo "exe sl.','.el 's/\%'.sc.'c\|\%'.ec.'c.\zs/\=s/g|norm!``'"
+	else
+		"exe el 's/\%'.ec.'c.\zs/\=s/|norm!``'
+		"exe sl 's/\%'.sc.'c/\=s/|norm!``'
+	endif
+endfunction
+
